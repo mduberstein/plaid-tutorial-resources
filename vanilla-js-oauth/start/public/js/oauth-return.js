@@ -1,19 +1,11 @@
-let linkTokenData;
+function finishOAuth() {
+  const storedTokenData = localStorage.getItem("linkTokenData");
+  console.log(`I retrieved ${storedTokenData} from local storage`);
+  const linkTokenData = JSON.parse(storedTokenData);
 
-const initializeLink = async function () {
-  const linkTokenResponse = await fetch(`/api/create_link_token`);
-  linkTokenData = await linkTokenResponse.json();
-  localStorage.setItem("linkTokenData", JSON.stringify(linkTokenData));
-  document.querySelector("#startLink").classList.remove("opacity-50");
-  console.log(JSON.stringify(linkTokenData));
-};
-
-const startLink = function () {
-  if (linkTokenData === undefined) {
-    return;
-  }
   const handler = Plaid.create({
     token: linkTokenData.link_token,
+    receivedRedirectUri: window.location.href,
     onSuccess: async (publicToken, metadata) => {
       console.log(
         `I have a public token: ${publicToken} I should exchange this`
@@ -26,6 +18,10 @@ const startLink = function () {
           metadata
         )}`
       );
+      if (err !== null) {
+        document.querySelector("#userMessage").innerHTML =
+          "Oh no! We got some kind of error! Please <a href='connect.html'>try again.</a>";
+      }
     },
     onEvent: (eventName, metadata) => {
       console.log(`Event ${eventName}`);
@@ -34,6 +30,7 @@ const startLink = function () {
   handler.open();
 };
 
+// TODO: Remove this duplicate code by putting it into a module or something
 async function exchangeToken(publicToken) {
   const tokenExchangeResponse = await fetch(`/api/exchange_public_token`, {
     method: "POST",
@@ -47,6 +44,4 @@ async function exchangeToken(publicToken) {
   window.location.href = "index.html";
 }
 
-document.querySelector("#startLink").addEventListener("click", startLink);
-
-initializeLink();
+finishOAuth();

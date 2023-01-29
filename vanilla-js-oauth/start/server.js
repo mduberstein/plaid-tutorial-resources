@@ -74,6 +74,8 @@ app.get("/api/create_link_token", async (req, res, next) => {
     language: "en",
     products: ["transactions"],
     country_codes: ["US"],
+    // support of redirect flow by shear presence of redirect_uri field
+    redirect_uri: "http://localhost:8000/oauth-return.html",
   });
   console.log(`Token response: ${JSON.stringify(tokenResponse.data)}`);
 
